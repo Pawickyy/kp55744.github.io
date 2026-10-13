@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lista zadań</title>
+
+    <link rel="stylesheet" href="styles.css" type="text/css">
+    <script src="scripts.js" defer></script>
+</head>
+<body>
+    <main class="todo-app">
+        <h1>Lista zadań</h1>
+
+        <label class="search-box">
+            <span>Wyszukaj zadanie</span>
+            <input type="search" id="search-input" placeholder="Szukaj..." minlength="2">
+        </label>
+
+        <form id="todo-form" class="todo-form">
+            <label>
+                <span>Zadanie</span>
+                <input id="task-input" type="text" placeholder="Wpisz zadanie" minlength="3" maxlength="255" required>
+            </label>
+
+            <label>
+                <span>Data</span>
+                <input id="task-date" type="date">
+            </label>
+
+            <button type="submit">Dodaj</button>
+        </form>
+
+        <ul id="todo-list" class="todo-list"></ul>
+    </main>
+</body>
+</html>
