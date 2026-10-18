@@ -1,3 +1,4 @@
+//wygenerowano przez Copilot AI
 window.todo = {
   tasks: [],
   storageKey: 'todo.tasks',
