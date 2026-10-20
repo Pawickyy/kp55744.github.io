@@ -1,14 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Imie Nazwisko (00000) - IS LAB C</title>
+    <meta name="description" content="Sprawdź aktualną pogodę i prognozę na pięć dni.">
+    <title>Przemysław Kozłowski (55744) - IS LAB C</title>
 
     <link rel="stylesheet" href="styles.css" type="text/css">
     <script src="scripts.js" defer></script>
 </head>
 <body>
-
+    <main class="container">
+        <form id="weather-form">
+            <input type="text" id="city" name="city" aria-label="Wprowadź miasto" placeholder="Wpisz miasto" required>
+            <button type="submit">Pogoda</button>
+        </form>
+        <section id="results" aria-live="polite" aria-label="Wyniki pogody" hidden>
+            <p id="status" role="status"></p>
+            <div id="weather"></div>
+        </section>
+    </main>
 </body>
 </html>
