@@ -5,34 +5,53 @@ const resultsElement = document.querySelector("#results");
 const weatherElement = document.querySelector("#weather");
 const apiKey = "9709fe63668f78a498ca57256c07c2b5";
 
-form.addEventListener("submit", async (event) => {
+form.addEventListener("submit", (event) => {
     event.preventDefault();
+    loadWeather({ q: cityInput.value });
+});
 
+loadWeatherFromLocation();
+
+async function loadWeather(location) {
     const query = new URLSearchParams({
-        q: cityInput.value,
+        ...location,
         appid: apiKey,
         units: "metric",
         lang: "pl"
     });
     const baseUrl = "https://api.openweathermap.org/data/2.5";
-    const currentUrl = `${baseUrl}/weather?${query}`;
-    const forecastUrl = `${baseUrl}/forecast?${query}`;
-
     resultsElement.hidden = false;
     statusElement.textContent = "Pobieranie pogody…";
     weatherElement.replaceChildren();
 
     try {
         const [current, forecast] = await Promise.all([
-            getCurrentWeather(currentUrl),
-            getForecast(forecastUrl)
+            getCurrentWeather(`${baseUrl}/weather?${query}`),
+            getForecast(`${baseUrl}/forecast?${query}`)
         ]);
         showWeather(current, forecast);
         statusElement.textContent = "";
     } catch {
-        statusElement.textContent = "Nie udało się pobrać pogody dla tego miasta.";
+        statusElement.textContent = "Nie udało się pobrać pogody. Sprawdź miasto lub uprawnienia lokalizacji.";
     }
-});
+}
+
+function loadWeatherFromLocation() {
+    resultsElement.hidden = false;
+    if (!navigator.geolocation) {
+        statusElement.textContent = "Geolokalizacja nie jest dostępna. Wpisz miasto, aby sprawdzić pogodę.";
+        return;
+    }
+    statusElement.textContent = "Ustalanie lokalizacji…";
+
+    navigator.geolocation.getCurrentPosition(
+        ({ coords }) => loadWeather({ lat: coords.latitude, lon: coords.longitude }),
+        () => {
+            statusElement.textContent = "Nie udało się ustalić lokalizacji. Wpisz miasto, aby sprawdzić pogodę.";
+        },
+        { timeout: 10000 }
+    );
+}
 
 function getCurrentWeather(url) {
     return new Promise((resolve, reject) => {
@@ -59,6 +78,20 @@ async function getForecast(url) {
 }
 
 function showWeather(current, forecast) {
+    const timezoneOffset = forecast.city.timezone;
+    const today = new Date((current.dt + timezoneOffset) * 1000).toISOString().slice(0, 10);
+    const entriesByDate = new Map();
+    forecast.list.forEach((entry) => {
+        const date = new Date((entry.dt + timezoneOffset) * 1000).toISOString().slice(0, 10);
+        if (!entriesByDate.has(date)) entriesByDate.set(date, []);
+        entriesByDate.get(date).push(entry);
+    });
+
+    const todayLayout = document.createElement("div");
+    todayLayout.className = "today-layout";
+    const currentSection = document.createElement("section");
+    currentSection.className = "current-section";
+    currentSection.append(createText("h2", "Pogoda na dziś"));
     const currentCard = document.createElement("article");
     currentCard.className = "weather-card current-weather";
     currentCard.append(
@@ -69,54 +102,71 @@ function showWeather(current, forecast) {
         createText("p", current.weather[0].description, "description"),
         createRecommendations(current.weather[0].id)
     );
+    currentSection.append(currentCard);
+
+    const todayForecast = document.createElement("section");
+    todayForecast.className = "today-forecast";
+    todayForecast.append(createText("h2", "Prognoza godzinowa"));
+    const todayGrid = document.createElement("div");
+    todayGrid.className = "today-forecast-grid";
+    (entriesByDate.get(today) || []).forEach((entry) => {
+        todayGrid.append(createForecastCard(entry, timezoneOffset));
+    });
+    todayForecast.append(todayGrid);
+    todayLayout.append(currentSection, todayForecast);
 
     const forecastSection = document.createElement("section");
     forecastSection.className = "forecast";
-    forecastSection.append(createText("h2", "Prognoza na 5 dni"));
-    const forecastGrid = document.createElement("div");
-    forecastGrid.className = "forecast-grid";
+    forecastSection.append(createText("h2", "Pogoda na najbliższe 5 dni"));
+    const futureDays = [...entriesByDate.keys()].filter((date) => date > today).slice(0, 5);
+    const dayPicker = document.createElement("div");
+    dayPicker.className = "day-picker";
+    dayPicker.setAttribute("role", "group");
+    dayPicker.setAttribute("aria-label", "Wybierz dzień prognozy");
 
-    const days = new Map();
-    forecast.list.forEach((entry) => {
-        const date = entry.dt_txt.slice(0, 10);
-        if (!days.has(date)) {
-            days.set(date, {
-                min: entry.main.temp_min,
-                max: entry.main.temp_max,
-                description: entry.weather[0].description,
-                icon: entry.weather[0].icon,
-                condition: entry.weather[0].id,
-                precipitation: entry.pop
+    const selectedForecast = document.createElement("div");
+    selectedForecast.className = "forecast-grid selected-forecast";
+    futureDays.forEach((date, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "day-button";
+        button.textContent = formatDate(date);
+        button.setAttribute("aria-pressed", String(index === 0));
+        button.addEventListener("click", () => {
+            dayPicker.querySelectorAll(".day-button").forEach((dayButton) => {
+                dayButton.setAttribute("aria-pressed", String(dayButton === button));
             });
-        } else {
-            const day = days.get(date);
-            day.min = Math.min(day.min, entry.main.temp_min);
-            day.max = Math.max(day.max, entry.main.temp_max);
-            day.precipitation = Math.max(day.precipitation, entry.pop);
-            if (entry.dt_txt.includes("12:00:00")) {
-                day.description = entry.weather[0].description;
-                day.icon = entry.weather[0].icon;
-                day.condition = entry.weather[0].id;
-            }
-        }
+            renderDayForecast(selectedForecast, entriesByDate.get(date), timezoneOffset);
+        });
+        dayPicker.append(button);
     });
+    forecastSection.append(dayPicker, selectedForecast);
+    if (futureDays.length) {
+        renderDayForecast(selectedForecast, entriesByDate.get(futureDays[0]), timezoneOffset);
+    }
 
-    [...days.entries()].slice(0, 5).forEach(([date, day]) => {
-        const card = document.createElement("article");
-        card.className = "weather-card forecast-card";
-        card.append(
-            createText("h3", formatDate(date)),
-            createIcon(day.icon, day.description),
-            createText("p", day.description, "description"),
-            createText("p", `${Math.round(day.min)}° – ${Math.round(day.max)}°C`, "temperature"),
-            createText("p", `Szansa opadów: ${Math.round(day.precipitation * 100)}%`, "precipitation"),
-            createRecommendations(day.condition, day.precipitation)
-        );
-        forecastGrid.append(card);
-    });
+    weatherElement.replaceChildren(todayLayout, forecastSection);
+}
 
-    forecastSection.append(forecastGrid);
-    weatherElement.replaceChildren(currentCard, forecastSection);
+function renderDayForecast(container, entries, timezoneOffset) {
+    container.replaceChildren(...entries.map((entry) => createForecastCard(entry, timezoneOffset)));
+}
+
+function createForecastCard(entry, timezoneOffset) {
+    const localDate = new Date((entry.dt + timezoneOffset) * 1000);
+    const weather = entry.weather[0];
+    const precipitation = entry.pop ?? 0;
+    const card = document.createElement("article");
+    card.className = "weather-card forecast-card";
+    card.append(
+        createText("h4", localDate.toISOString().slice(11, 16)),
+        createIcon(weather.icon, weather.description),
+        createText("p", `${Math.round(entry.main.temp)}°C`, "temperature"),
+        createText("p", weather.description, "description"),
+        createText("p", `Szansa opadów: ${Math.round(precipitation * 100)}%`, "precipitation"),
+        createRecommendations(weather.id, precipitation)
+    );
+    return card;
 }
 
 function createText(tag, text, className = "") {

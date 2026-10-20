@@ -7,7 +7,7 @@ body {
 }
 
 .container {
-    width: min(760px, calc(100% - 2rem));
+    width: min(1440px, calc(100% - 2rem));
     margin: 0 auto;
     padding: 2rem 0;
 }
@@ -76,14 +76,115 @@ input:focus-visible {
     gap: 1.5rem;
 }
 
+.weather-layout {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.today-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 1.25rem;
+}
+
 .forecast h2 {
     margin-bottom: 0.75rem;
 }
 
+.current-section > h2 {
+    margin-bottom: 0.75rem;
+}
+
+.today-forecast h2 {
+    margin-bottom: 0.75rem;
+}
+
+.today-forecast-grid {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.today-forecast-grid .forecast-card {
+    display: grid;
+    grid-template-columns: 3.5rem 4rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    padding: 0.55rem 0.85rem;
+    text-align: left;
+}
+
+.today-forecast-grid .weather-icon {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+}
+
+.today-forecast-grid .forecast-card h4 {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.today-forecast-grid .temperature {
+    grid-column: 4;
+    grid-row: 1;
+    font-size: 1.15rem;
+}
+
+.today-forecast-grid .description {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.today-forecast-grid .precipitation {
+    grid-column: 3 / 5;
+    grid-row: 2;
+    margin: 0;
+}
+
+.today-forecast-grid .recommendations {
+    grid-column: 1 / -1;
+    margin: 0.25rem 0 0;
+}
+
+.forecast-day + .forecast-day {
+    margin-top: 1rem;
+}
+
+.forecast-day > h3 {
+    margin: 0 0 0.65rem;
+    color: #c0cfe1;
+    text-transform: capitalize;
+}
+
 .forecast-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.day-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+}
+
+.day-button {
+    min-height: 2.5rem;
+    border-color: #34445b;
+    background: #17243a;
+    color: #c0cfe1;
+    text-transform: capitalize;
+}
+
+.day-button:hover,
+.day-button[aria-pressed="true"] {
+    border-color: #2878c7;
+    background: #2878c7;
+    color: #fff;
 }
 
 .weather-card {
@@ -109,7 +210,8 @@ input:focus-visible {
 }
 
 .weather-card h2,
-.weather-card h3 {
+.weather-card h3,
+.weather-card h4 {
     position: relative;
     margin: 0;
     color: #e3efff;
@@ -117,11 +219,21 @@ input:focus-visible {
 }
 
 .current-weather {
-    padding: 1.5rem;
+    padding: 2rem;
+    min-height: 30rem;
 }
 
 .current-weather h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+}
+
+.current-weather .weather-icon {
+    width: 144px;
+    height: 144px;
+}
+
+.current-weather .temperature {
+    font-size: 2rem;
 }
 
 .weather-icon {
@@ -191,17 +303,59 @@ input:focus-visible {
     font-size: 0.95rem;
 }
 
+.forecast-card h4 {
+    font-size: 1rem;
+}
+
 @media (max-width: 420px) {
     .search-row {
         flex-direction: column;
     }
 
-    .forecast-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.65rem;
-    }
-
     .forecast-card {
         padding: 0.9rem 0.5rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .today-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .current-weather {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .forecast-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .today-forecast-grid .forecast-card {
+        grid-template-columns: 3rem 3.5rem minmax(0, 1fr);
+        gap: 0.25rem 0.5rem;
+    }
+
+    .today-forecast-grid .weather-icon {
+        grid-column: 2;
+    }
+
+    .today-forecast-grid .description {
+        grid-column: 3;
+    }
+
+    .today-forecast-grid .temperature {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .today-forecast-grid .precipitation {
+        grid-column: 3;
+        grid-row: 3;
+    }
+
+    .today-forecast-grid .recommendations {
+        grid-column: 1 / -1;
     }
 }
