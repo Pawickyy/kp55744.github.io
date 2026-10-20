@@ -62,7 +62,9 @@ function getCurrentWeather(url) {
                 reject(new Error("Current weather request failed"));
                 return;
             }
-            resolve(JSON.parse(request.responseText));
+            const data = JSON.parse(request.responseText);
+            console.log("Current weather:", data);
+            resolve(data);
         };
         request.onerror = () => reject(new Error("Current weather request failed"));
         request.send();
@@ -74,7 +76,9 @@ async function getForecast(url) {
     if (!response.ok) {
         throw new Error("Forecast request failed");
     }
-    return response.json();
+    const data = await response.json();
+    console.log("Forecast:", data);
+    return data;
 }
 
 function showWeather(current, forecast) {
