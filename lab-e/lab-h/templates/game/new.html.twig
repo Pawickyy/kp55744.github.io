@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Game{% endblock %}
+
+{% block body %}
+    <main class="container py-4">
+        <h1 class="mb-4">Create new Game</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {{ include('game/_form.html.twig') }}
+            </div>
+        </div>
+
+        <a class="btn btn-link mt-3 px-0" href="{{ path('app_game_index') }}">Back to list</a>
+    </main>
+{% endblock %}
